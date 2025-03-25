@@ -19,3 +19,67 @@ trigger:
     - main
   event:
     - push
+---
+kind: pipeline
+type: kubernetes
+name: run terraform plan
+steps:
+  - commands:
+      - cd deploy
+      - terraform init
+      - terraform plan
+    environment:
+      AWS_ACCESS_KEY_ID:
+        from_secret: digitalocean_spaces_access_key_id
+      AWS_SECRET_ACCESS_KEY:
+        from_secret: digitalocean_spaces_secret_key
+      TF_VAR_cluster_issuer_name: letsencrypt
+      TF_VAR_dikurium_k8s_cluster_name_all: k8s-dik-all
+      TF_VAR_do_token:
+        from_secret: digitalocean_token
+      TF_VAR_image_repository: freund_und_partner/customer-files-organizer-web
+      TF_VAR_image_tag: latest
+      TF_VAR_registry: gitea.dikurium.ch
+      TF_VAR_registry_password:
+        from_secret: git_pass
+      TF_VAR_registry_username:
+        from_secret: git_user
+    image: hashicorp/terraform:1.6.5
+    name: terraform plan
+trigger:
+  branch:
+    - main
+  event:
+    - push
+---
+kind: pipeline
+type: kubernetes
+name: run terraform apply
+steps:
+  - commands:
+      - cd deploy
+      - terraform init
+      - terraform apply -auto-approve
+    environment:
+      AWS_ACCESS_KEY_ID:
+        from_secret: digitalocean_spaces_access_key_id
+      AWS_SECRET_ACCESS_KEY:
+        from_secret: digitalocean_spaces_secret_key
+      TF_VAR_cluster_issuer_name: letsencrypt
+      TF_VAR_dikurium_k8s_cluster_name_all: k8s-dik-all
+      TF_VAR_do_token:
+        from_secret: digitalocean_token
+      TF_VAR_image_repository: freund_und_partner/customer-files-organizer-web
+      TF_VAR_image_tag: latest
+      TF_VAR_registry: gitea.dikurium.ch
+      TF_VAR_registry_password:
+        from_secret: git_pass
+      TF_VAR_registry_username:
+        from_secret: git_user
+    image: hashicorp/terraform:1.6.5
+    name: terraform apply
+trigger:
+  event:
+    - promote
+  target:
+    - production
