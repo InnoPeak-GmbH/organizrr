@@ -1,0 +1,21 @@
+kind: pipeline
+type: kubernetes
+name: publish Docker image on main
+steps:
+  - image: plugins/docker
+    name: publish Docker image
+    settings:
+      auto_tag: true
+      cache_from:
+        - gitea.dikurium.ch/Freund_und_Partner/customer-files-organizer-web:latest
+      registry: gitea.dikurium.ch
+      repo: gitea.dikurium.ch/Freund_und_Partner/customer-files-organizer-web
+      username:
+        from_secret: git_user
+      password:
+        from_secret: git_pass
+trigger:
+  branch:
+    - main
+  event:
+    - push
