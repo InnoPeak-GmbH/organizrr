@@ -118,7 +118,7 @@ function FileOrganizer() {
         id,
         color: "teal",
         title: "Dateien wurden verarbeitet",
-        message: `Dateien werden unter ${resultArchive} gespeichert`,
+        message: `Dateien können nun heruntergeladen werden!`,
         icon: <IconCheck size={18} />,
         loading: false,
         autoClose: 2000,
