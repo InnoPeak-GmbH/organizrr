@@ -13,6 +13,7 @@ import (
 	"syscall/js"
 
 	pdfcpu "github.com/pdfcpu/pdfcpu/pkg/api"
+	"github.com/pdfcpu/pdfcpu/pkg/pdfcpu/model"
 )
 
 type Customer struct {
@@ -127,6 +128,10 @@ func createArchive(this js.Value, args []js.Value) any {
 
 	promiseConstructor := js.Global().Get("Promise")
 	return promiseConstructor.New(handler)
+}
+
+func init() {
+	model.ConfigPath = "disable"
 }
 
 func main() {
