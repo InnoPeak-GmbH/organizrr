@@ -1,0 +1,15 @@
+{
+  // See https://go.microsoft.com/fwlink/?LinkId=733558
+  // for the documentation about the tasks.json format
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build WASM binary",
+      "type": "shell",
+      "command": "GOOS=\"js\" GOARCH=\"wasm\" go build -o main.wasm",
+      "windows": {
+        "command": "$Env:GOOS = \"js\"; $Env:GOARCH = \"wasm\"; go build -o public/main.wasm"
+      }
+    }
+  ]
+}
