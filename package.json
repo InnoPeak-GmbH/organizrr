@@ -1,0 +1,36 @@
+{
+  "name": "frontend",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@mantine/core": "^7.17.2",
+    "@mantine/dropzone": "^7.17.2",
+    "@mantine/form": "^7.17.2",
+    "@mantine/hooks": "^7.17.2",
+    "@mantine/modals": "^7.17.2",
+    "@mantine/notifications": "^7.17.2",
+    "@mantine/nprogress": "^7.17.2",
+    "@tabler/icons-react": "^3.31.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-pdf": "^9.2.1"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.12",
+    "@types/react-dom": "^19.0.4",
+    "@vitejs/plugin-react": "^4.3.4",
+    "postcss": "^8.5.3",
+    "postcss-preset-mantine": "^1.17.0",
+    "postcss-simple-vars": "^7.0.1",
+    "typescript": "^5.8.2",
+    "vite": "^6.2.3",
+    "vite-plugin-top-level-await": "^1.5.0",
+    "vite-plugin-wasm": "^3.4.1"
+  }
+}
