@@ -217,7 +217,6 @@ function FileOrganizer() {
                       {...form.getInputProps(`files.${idx}.suffix`)}
                     />
                   </Group>
-                  {/* Disabled due to lack of support for mkdir in js wasm environment
                   <Group align="end">
                     <Text>Seiten auswählen:</Text>
                     {file.selectedPages.map((_, i) => (
@@ -239,7 +238,7 @@ function FileOrganizer() {
                     >
                       +
                     </Button>
-                  </Group> */}
+                  </Group>
                 </Stack>
               ))}
             </Stack>
