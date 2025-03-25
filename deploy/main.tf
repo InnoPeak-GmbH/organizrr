@@ -73,7 +73,7 @@ resource "kubernetes_namespace" "customer_files_organizer" {
 
 resource "kubernetes_deployment" "customer_files_organizer" {
   metadata {
-    name      = "customer_files_organizer"
+    name      = "customer-files-organizer"
     namespace = kubernetes_namespace.customer_files_organizer.metadata.0.name
   }
   spec {
@@ -94,7 +94,7 @@ resource "kubernetes_deployment" "customer_files_organizer" {
         }
         container {
           image             = "${var.registry}/${var.image_repository}:${var.image_tag}"
-          name              = "customer_files_organizer"
+          name              = "customer-files-organizer"
           image_pull_policy = "Always"
           port {
             container_port = 3000
@@ -108,7 +108,7 @@ resource "kubernetes_deployment" "customer_files_organizer" {
 
 resource "kubernetes_service" "customer_files_organizer" {
   metadata {
-    name      = "customer_files_organizer"
+    name      = "customer-files-organizer"
     namespace = kubernetes_namespace.customer_files_organizer.metadata.0.name
   }
   spec {
@@ -123,7 +123,7 @@ resource "kubernetes_service" "customer_files_organizer" {
 
 resource "kubernetes_ingress_v1" "customer_files_organizer" {
   metadata {
-    name      = "customer_files_organizer"
+    name      = "customer-files-organizer"
     namespace = kubernetes_namespace.customer_files_organizer.metadata.0.name
     annotations = {
       "cert-manager.io/cluster-issuer" = var.cluster_issuer_name
