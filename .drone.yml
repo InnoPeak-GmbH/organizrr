@@ -7,9 +7,9 @@ steps:
     settings:
       auto_tag: true
       cache_from:
-        - gitea.dikurium.ch/Freund_und_Partner/customer-files-organizer-web:latest
+        - gitea.dikurium.ch/freund_und_partner/customer-files-organizer-web:latest
       registry: gitea.dikurium.ch
-      repo: gitea.dikurium.ch/Freund_und_Partner/customer-files-organizer-web
+      repo: gitea.dikurium.ch/freund_und_partner/customer-files-organizer-web
       username:
         from_secret: git_user
       password:
