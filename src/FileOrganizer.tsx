@@ -4,12 +4,22 @@ import {
   Button,
   Flex,
   Group,
+  Indicator,
   Pagination,
+  Select,
   Stack,
   Text,
   TextInput,
   Title,
+  Tooltip,
 } from "@mantine/core";
+import {
+  ChatCompletionMessageParam,
+  CreateMLCEngine,
+  InitProgressCallback,
+  MLCEngine,
+  prebuiltAppConfig,
+} from "@mlc-ai/web-llm";
 import { Document, Page } from "react-pdf";
 import { Dropzone, FileWithPath } from "@mantine/dropzone";
 import { Form, isNotEmpty, useForm } from "@mantine/form";
@@ -17,12 +27,14 @@ import {
   IconCheck,
   IconExclamationMark,
   IconFile,
+  IconRobotFace,
   IconUpload,
   IconX,
 } from "@tabler/icons-react";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { notifications } from "@mantine/notifications";
+import { useLocalStorage } from "@mantine/hooks";
 
 declare global {
   function createArchive(payload: string): Promise<string>;
@@ -32,6 +44,66 @@ type FormValues = {
   files: { file: FileWithPath; suffix: string; selectedPages: string[] }[];
   customer: { firstName: string; lastName: string };
 };
+
+const fileCategories = [
+  "Lohnausweis",
+  "Öffentlicher Verkehr",
+  "Steuererklärung",
+  "Weiterbildung",
+  "3A Bescheinigung",
+  "Steuerzugangsdaten",
+  "Wertschriften",
+  "Kontoauszug",
+  "Zinsauweis",
+  "Krankenkassenprämie",
+  "Krankenkassenrechnung",
+];
+
+const systemMessage = {
+  role: "system",
+  content: `
+You are an AI assistant for a financial advisor. You will help them label files based on the file name using the following categories: ${fileCategories.join(
+    ", "
+  )}
+
+The user will provide the file name. Make the best assumption based on common financial document names. Respond ONLY with the label or "Unable to label file" - nothing else.
+`,
+} satisfies ChatCompletionMessageParam;
+
+const models = [
+  "TinyLlama-1.1B-Chat-v0.4-q4f32_1-MLC",
+  "phi-1_5-q4f16_1-MLC",
+  "gemma-2-2b-it-q4f16_1-MLC-1k",
+  "gemma-2-2b-it-q4f32_1-MLC-1k",
+  "phi-2-q4f16_1-MLC-1k",
+  "Qwen2.5-3B-Instruct-q4f16_1-MLC",
+  "Phi-3-mini-4k-instruct-q4f16_1-MLC-1k",
+  "Phi-3.5-mini-instruct-q4f32_1-MLC-1k",
+  "Llama-3.1-8B-Instruct-q4f16_1-MLC-1k",
+];
+
+const modelList = [
+  {
+    group: "Primär",
+    items: prebuiltAppConfig.model_list
+      .filter((m) => models.includes(m.model_id))
+      .map((m) => ({
+        ...m,
+        value: m.model_id,
+        label: m.model_id,
+      })),
+  },
+  {
+    group: "Andere",
+    items: prebuiltAppConfig.model_list
+      .filter((m) => !models.includes(m.model_id))
+      .map((m) => ({
+        ...m,
+        value: m.model_id,
+        label: m.model_id,
+      })),
+  },
+];
 
 function FileOrganizer() {
   const form = useForm<FormValues>({
@@ -49,6 +121,45 @@ function FileOrganizer() {
     },
     validateInputOnBlur: true,
   });
+
+  const engine = useRef<MLCEngine>(null);
+  const [loadingModel, setLoadingModel] = useState<string | null>(null);
+  const [runningModel, setRunningModel] = useState<string | null>(null);
+
+  const [selectedModel, setSelectedModel] = useLocalStorage<string | null>({
+    key: "modelId",
+    defaultValue: null,
+  });
+
+  useEffect(() => {
+    if (selectedModel && runningModel !== selectedModel) {
+      (async () => {
+        setLoadingModel(selectedModel);
+        const initProgressCallback: InitProgressCallback = async (
+          initProgress
+        ) => {
+          if (
+            initProgress.progress === 1 &&
+            initProgress.text.startsWith("Finish loading")
+          ) {
+            setRunningModel(selectedModel);
+            setLoadingModel(null);
+          }
+        };
+
+        engine.current = await CreateMLCEngine(
+          selectedModel,
+          { initProgressCallback: initProgressCallback } // engineConfig
+        );
+      })();
+    }
+  }, [
+    engine,
+    selectedModel,
+    runningModel,
+    setRunningModel,
+    setLoadingModel,
+  ]);
 
   const [selectedFile, setSelectedFile] = useState<number | null>(null);
   const [numPages, setNumPages] = useState<number>();
@@ -166,6 +277,48 @@ function FileOrganizer() {
     }
   };
 
+  const handleFilesDrop = async (files: FileWithPath[]) => {
+    files.forEach((f) =>
+      form.insertListItem("files", {
+        file: f,
+        suffix: "",
+        selectedPages: [],
+      })
+    );
+
+    await Promise.all(
+      files.map(async (file) => {
+        const messages: ChatCompletionMessageParam[] = [
+          systemMessage,
+          { role: "user", content: "The file name is: " + file.name },
+        ];
+
+        const reply = await engine.current?.chat.completions.create({
+          messages,
+        });
+
+        if (
+          reply &&
+          reply.choices[0].message.content &&
+          !reply?.choices[0].message.content?.includes(
+            "Unable to label file"
+          ) &&
+          !reply?.choices[0].message.content?.includes("I'm sorry")
+        ) {
+          console.log(reply?.choices[0].message.content);
+          form.getValues().files.forEach((f, idx) => {
+            if (f.file.name === file.name) {
+              form.setFieldValue(
+                `files.${idx}.suffix`,
+                reply?.choices[0].message.content?.split("\n")[0]
+              );
+            }
+          });
+        }
+      })
+    );
+  };
+
   return (
     <Form form={form} onSubmit={handleSubmit}>
       <Stack p="md">
@@ -177,6 +330,7 @@ function FileOrganizer() {
             withAsterisk
             required
             {...form.getInputProps("customer.firstName")}
+            key={form.key("customer.firstName")}
           />
           <TextInput
             label="Nachname"
@@ -184,37 +338,54 @@ function FileOrganizer() {
             withAsterisk
             required
             {...form.getInputProps("customer.lastName")}
+            key={form.key("customer.lastName")}
           />
+          <Group ml="auto">
+            <Tooltip
+              label={
+                runningModel
+                  ? loadingModel
+                    ? `${runningModel} (KI Modell wird geladen)`
+                    : runningModel
+                  : "KI Modell wird geladen"
+              }
+            >
+              <Indicator
+                color={
+                  runningModel ? (loadingModel ? "blue" : "green") : "orange"
+                }
+                processing={loadingModel !== null}
+              >
+                <IconRobotFace />
+              </Indicator>
+            </Tooltip>
+            {modelList && (
+              <Select
+                data={modelList}
+                value={selectedModel}
+                onChange={(val) => val && setSelectedModel(val)}
+              />
+            )}
+          </Group>
         </Group>
         <Flex direction="row-reverse" p="md">
           <Stack flex={2}>
             <Title order={2}>Dateien</Title>
             <Stack mah="50vh" style={{ overflow: "auto" }} p="md">
               {form.values.files.map((file, idx) => (
-                <Stack>
-                  <Group align="end" key={`${file.file.name}-${idx}`}>
+                <Stack key={`${file.file.name}-${idx}`}>
+                  <Group align="end">
                     <Button onClick={() => setSelectedFile(idx)} flex={1}>
                       {file.file.name}
                     </Button>
                     <Autocomplete
-                      data={[
-                        "Lohnausweis",
-                        "Öffentlicher Verkehr",
-                        "Steuererklärung",
-                        "Weiterbildung",
-                        "3A Bescheinigung",
-                        "Steuerzugangsdaten",
-                        "Wertschriften",
-                        "Kontoauszug",
-                        "Zinsauweis",
-                        "Krankenkassenprämie",
-                        "Krankenkassenrechnung",
-                      ]}
+                      data={fileCategories}
                       label="Kategorie"
                       placeholder="Kategorie"
                       withAsterisk
                       required
                       {...form.getInputProps(`files.${idx}.suffix`)}
+                      key={form.key(`files.${idx}.suffix`)}
                     />
                   </Group>
                   <Group align="end">
@@ -228,6 +399,7 @@ function FileOrganizer() {
                         {...form.getInputProps(
                           `files.${idx}.selectedPages.${i}`
                         )}
+                        key={form.key(`files.${idx}.selectedPages.${i}`)}
                       />
                     ))}
                     <Button
@@ -242,18 +414,7 @@ function FileOrganizer() {
                 </Stack>
               ))}
             </Stack>
-            <Dropzone
-              onDrop={(files) =>
-                files.forEach((f) =>
-                  form.insertListItem("files", {
-                    file: f,
-                    suffix: "",
-                    selectedPages: [],
-                  })
-                )
-              }
-              accept={["application/pdf"]}
-            >
+            <Dropzone onDrop={handleFilesDrop} accept={["application/pdf"]}>
               <Group
                 justify="center"
                 gap="xl"
@@ -292,7 +453,7 @@ function FileOrganizer() {
             <Button type="submit">Submit</Button>
           </Stack>
           <Flex flex={2} align="center" direction="column">
-            {selectedFile && (
+            {selectedFile != null && (
               <Stack>
                 <Title order={2}>Vorschau</Title>
                 <Document

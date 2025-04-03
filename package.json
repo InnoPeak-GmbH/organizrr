@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@huggingface/transformers": "^3.4.2",
     "@mantine/core": "^7.17.2",
     "@mantine/dropzone": "^7.17.2",
     "@mantine/form": "^7.17.2",
@@ -16,6 +17,7 @@
     "@mantine/modals": "^7.17.2",
     "@mantine/notifications": "^7.17.2",
     "@mantine/nprogress": "^7.17.2",
+    "@mlc-ai/web-llm": "^0.2.78",
     "@tabler/icons-react": "^3.31.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
