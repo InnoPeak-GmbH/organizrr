@@ -6,6 +6,7 @@ import {
   Group,
   Indicator,
   Pagination,
+  Progress,
   Select,
   Stack,
   Text,
@@ -124,6 +125,7 @@ function FileOrganizer() {
 
   const engine = useRef<MLCEngine>(null);
   const [loadingModel, setLoadingModel] = useState<string | null>(null);
+  const [loadingProgress, setLoadingProgress] = useState<number | null>(null);
   const [runningModel, setRunningModel] = useState<string | null>(null);
 
   const [selectedModel, setSelectedModel] = useLocalStorage<string | null>({
@@ -138,12 +140,15 @@ function FileOrganizer() {
         const initProgressCallback: InitProgressCallback = async (
           initProgress
         ) => {
+          setLoadingProgress(initProgress.progress);
+
           if (
             initProgress.progress === 1 &&
             initProgress.text.startsWith("Finish loading")
           ) {
             setRunningModel(selectedModel);
             setLoadingModel(null);
+            setLoadingProgress(null);
           }
         };
 
@@ -159,6 +164,7 @@ function FileOrganizer() {
     runningModel,
     setRunningModel,
     setLoadingModel,
+    setLoadingProgress,
   ]);
 
   const [selectedFile, setSelectedFile] = useState<number | null>(null);
@@ -314,6 +320,8 @@ function FileOrganizer() {
               );
             }
           });
+        } else {
+          console.warn(reply?.choices[0].message.content);
         }
       })
     );
@@ -341,31 +349,44 @@ function FileOrganizer() {
             key={form.key("customer.lastName")}
           />
           <Group ml="auto">
-            <Tooltip
-              label={
-                runningModel
-                  ? loadingModel
-                    ? `${runningModel} (KI Modell wird geladen)`
-                    : runningModel
-                  : "KI Modell wird geladen"
-              }
-            >
-              <Indicator
-                color={
-                  runningModel ? (loadingModel ? "blue" : "green") : "orange"
-                }
-                processing={loadingModel !== null}
-              >
-                <IconRobotFace />
-              </Indicator>
-            </Tooltip>
-            {modelList && (
-              <Select
-                data={modelList}
-                value={selectedModel}
-                onChange={(val) => val && setSelectedModel(val)}
-              />
-            )}
+            <Stack>
+              <Group>
+                <Tooltip
+                  label={
+                    runningModel
+                      ? loadingModel
+                        ? `${runningModel} (KI Modell wird geladen)`
+                        : runningModel
+                      : "KI Modell wird geladen"
+                  }
+                >
+                  <Indicator
+                    color={
+                      runningModel
+                        ? loadingModel
+                          ? "blue"
+                          : "green"
+                        : "orange"
+                    }
+                    processing={loadingModel !== null}
+                  >
+                    <IconRobotFace />
+                  </Indicator>
+                </Tooltip>
+                {modelList && (
+                  <Select
+                    data={modelList}
+                    value={selectedModel}
+                    onChange={(val) => val && setSelectedModel(val)}
+                    searchable
+                    clearable
+                  />
+                )}
+              </Group>
+              {loadingProgress !== null && (
+                <Progress value={loadingProgress} striped animated />
+              )}
+            </Stack>
           </Group>
         </Group>
         <Flex direction="row-reverse" p="md">
