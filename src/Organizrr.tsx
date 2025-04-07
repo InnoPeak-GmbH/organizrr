@@ -346,7 +346,11 @@ function Organizrr() {
             <Stack>
               <Dropzone onDrop={handleFileDrop} />
               <Group justify="flex-end">
-                <ActionIcon variant="transparent" onClick={closeDesktop}>
+                <ActionIcon
+                  variant="transparent"
+                  onClick={closeDesktop}
+                  visibleFrom="sm"
+                >
                   <IconLayoutSidebarLeftCollapse />
                 </ActionIcon>
               </Group>
