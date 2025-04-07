@@ -395,72 +395,74 @@ function Organizrr() {
                   </Group>
                   <ScrollArea offsetScrollbars>
                     <Group wrap="nowrap" align="start">
-                      {form.values.files[activeFile]?.documents.map((d, idx) => (
-                        <Stack
-                          key={`${d.id}-${idx}`}
-                          h={500}
-                          mah={500}
-                          w={300}
-                          style={{ cursor: "pointer" }}
-                          onClick={() => {
-                            setActiveDocumentId(d.id);
-                            openPreview();
-                          }}
-                        >
-                          <Group>
-                            <Text>
-                              {
-                                form.values.documents.find(
-                                  (_d) => _d.id === d.id
-                                )?.file.name
-                              }
-                            </Text>
-                            <ActionIcon
-                              ml="auto"
-                              variant="subtle"
-                              color="red"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                form.removeListItem(
-                                  `files.${activeFile}.documents`,
-                                  idx
-                                );
-                              }}
-                            >
-                              <IconTrash />
-                            </ActionIcon>
-                          </Group>
-                          {form.values.documents
-                            .find((_d) => _d.id === d.id)
-                            ?.file.name.endsWith(".pdf") && (
-                            <Box style={{ flexGrow: 1, minHeight: 0 }}>
-                              <ScrollArea h="100%">
-                                <Document
-                                  file={
-                                    form.values.documents.find(
-                                      (_d) => _d.id === d.id
-                                    )?.file
-                                  }
-                                  className={classNames.pdfPreview}
-                                >
-                                  <Page pageNumber={1} scale={0.5} />
-                                </Document>
-                              </ScrollArea>
-                            </Box>
-                          )}
-                          <TextInput
-                            label="Selected pages"
-                            placeholder="1, 3-4, even, odd"
-                            onClick={(e) => e.stopPropagation()}
-                            {...form.getInputProps(
-                              `files.${activeFile}.documents.${idx}.selectedPages`
+                      {form.values.files[activeFile]?.documents.map(
+                        (d, idx) => (
+                          <Stack
+                            key={`${d.id}-${idx}`}
+                            h={500}
+                            mah={500}
+                            w={300}
+                            style={{ cursor: "pointer" }}
+                            onClick={() => {
+                              setActiveDocumentId(d.id);
+                              openPreview();
+                            }}
+                          >
+                            <Group>
+                              <Text>
+                                {
+                                  form.values.documents.find(
+                                    (_d) => _d.id === d.id
+                                  )?.file.name
+                                }
+                              </Text>
+                              <ActionIcon
+                                ml="auto"
+                                variant="subtle"
+                                color="red"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  form.removeListItem(
+                                    `files.${activeFile}.documents`,
+                                    idx
+                                  );
+                                }}
+                              >
+                                <IconTrash />
+                              </ActionIcon>
+                            </Group>
+                            {form.values.documents
+                              .find((_d) => _d.id === d.id)
+                              ?.file.name.endsWith(".pdf") && (
+                              <Box style={{ flexGrow: 1, minHeight: 0 }}>
+                                <ScrollArea h="100%">
+                                  <Document
+                                    file={
+                                      form.values.documents.find(
+                                        (_d) => _d.id === d.id
+                                      )?.file
+                                    }
+                                    className={classNames.pdfPreview}
+                                  >
+                                    <Page pageNumber={1} scale={0.5} />
+                                  </Document>
+                                </ScrollArea>
+                              </Box>
                             )}
-                            key={form.key(
-                              `files.${activeFile}.documents.${idx}.selectedPages`
-                            )}
-                          />
-                        </Stack>
-                      ))}
+                            <TextInput
+                              label="Selected pages"
+                              placeholder="1, 3-4, even, odd"
+                              onClick={(e) => e.stopPropagation()}
+                              {...form.getInputProps(
+                                `files.${activeFile}.documents.${idx}.selectedPages`
+                              )}
+                              key={form.key(
+                                `files.${activeFile}.documents.${idx}.selectedPages`
+                              )}
+                            />
+                          </Stack>
+                        )
+                      )}
                       {form.values.documents
                         .find(
                           (doc) =>

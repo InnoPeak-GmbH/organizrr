@@ -53,6 +53,7 @@ const modelList = [
 
 type MLEngineContext = {
   activeModel: string | null;
+  selectedModel: string | null;
   loadingModel: {
     name: string;
     progress: number;
@@ -67,6 +68,7 @@ type MLEngineContext = {
 
 const MLEngineContext = createContext<MLEngineContext>({
   activeModel: null,
+  selectedModel: null,
   loadingModel: null,
   engine: { current: null },
   selectModel: () => {},
@@ -128,6 +130,7 @@ export function MLEngineContextProvider({ children }: { children: ReactNode }) {
             ? { name: loadingModel, progress: loadingProgress }
             : null,
         activeModel: runningModel,
+        selectedModel,
         selectModel: setSelectedModel,
         modelList,
       }}
