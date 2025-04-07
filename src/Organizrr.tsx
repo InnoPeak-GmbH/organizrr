@@ -92,6 +92,21 @@ function Organizrr() {
         suffix: isNotEmpty("Suffix must be given"),
         documents: {
           id: isNotEmpty("Document must be selected"),
+          selectedPages: (val) => {
+            if (
+              val
+                ?.split(",")
+                .some(
+                  (val) =>
+                    !/^\d+$/.test(val.replace(" ", "")) &&
+                    !/^\d+\-\d+$/.test(val.replace(" ", "")) &&
+                    val.replace(" ", "") !== "odd" &&
+                    val.replace(" ", "") !== "even"
+                )
+            ) {
+              return "Page numbers must be given as a comma separated list";
+            }
+          },
         },
       },
     },
@@ -232,7 +247,7 @@ function Organizrr() {
   const handleErrors = (errors: typeof form.errors) => {
     for (const [key] of Object.entries(errors)) {
       if (key.startsWith("files.")) {
-        if (!Number.isNaN(key.split(".")[1])) {
+        if (!Number.isNaN(parseInt(key.split(".")[1]))) {
           const idx = parseInt(key.split(".")[1]);
           setActiveFile(idx);
           break;
