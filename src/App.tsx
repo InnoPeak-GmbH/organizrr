@@ -2,10 +2,12 @@ import "@mantine/core/styles.css";
 import "@mantine/notifications/styles.css";
 import "./wasm_exec";
 
-import FileOrganizer from "./FileOrganizer";
-import { MantineProvider } from "@mantine/core";
+import { MantineProvider, createTheme } from "@mantine/core";
+
+import { MLEngineContextProvider } from "./MLEngineContext";
 import { ModalsProvider } from "@mantine/modals";
 import { Notifications } from "@mantine/notifications";
+import Organizrr from "./Organizrr";
 import { useEffect } from "react";
 
 declare class Go {
@@ -17,6 +19,8 @@ declare class Go {
   mem: DataView;
   run(instance: WebAssembly.Instance): Promise<void>;
 }
+
+const theme = createTheme({ primaryColor: "violet" });
 
 function App() {
   useEffect(() => {
@@ -30,10 +34,12 @@ function App() {
   }, []);
 
   return (
-    <MantineProvider>
+    <MantineProvider theme={theme}>
       <Notifications />
       <ModalsProvider>
-        <FileOrganizer />
+        <MLEngineContextProvider>
+          <Organizrr />
+        </MLEngineContextProvider>
       </ModalsProvider>
     </MantineProvider>
   );

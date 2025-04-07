@@ -9,6 +9,9 @@ export default defineConfig({
     VitePWA({
       registerType: "autoUpdate",
       includeAssets: ["favicon.ico", "apple-touch-icon.png"],
+      workbox: {
+        maximumFileSizeToCacheInBytes: 17000000,
+      },
       manifest: {
         name: "Organizrr",
         short_name: "Organizrr",
@@ -29,9 +32,6 @@ export default defineConfig({
         theme_color: "#8A1E59",
         background_color: "#8A1E59",
         display: "standalone",
-      },
-      devOptions: {
-        enabled: true,
       },
     }),
   ],

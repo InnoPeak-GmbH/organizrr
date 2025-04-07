@@ -135,5 +135,12 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
+dev-dist/
+
 src/wasm_exec.js
 public/main.wasm
+
+worker.ts
+
+# Terraform
+.infracost/
