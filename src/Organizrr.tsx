@@ -350,7 +350,10 @@ function Organizrr() {
                   <ActionIcon
                     variant="subtle"
                     c="red"
-                    onClick={() => form.reset()}
+                    onClick={() => {
+                      form.reset();
+                      setActiveFile(null);
+                    }}
                   >
                     <IconRestore />
                   </ActionIcon>
@@ -392,7 +395,7 @@ function Organizrr() {
                   </Group>
                   <ScrollArea offsetScrollbars>
                     <Group wrap="nowrap" align="start">
-                      {form.values.files[activeFile].documents.map((d, idx) => (
+                      {form.values.files[activeFile]?.documents.map((d, idx) => (
                         <Stack
                           key={`${d.id}-${idx}`}
                           h={500}
@@ -462,12 +465,12 @@ function Organizrr() {
                         .find(
                           (doc) =>
                             doc.id ===
-                            form.values.files[activeFile].documents[0].id
+                            form.values.files[activeFile]?.documents[0].id
                         )
                         ?.file.name.endsWith(".pdf") && (
                         <Stack
                           w={300}
-                          key={form.values.files[activeFile].documents.length}
+                          key={form.values.files[activeFile]?.documents.length}
                         >
                           <Select
                             label="Add file"
