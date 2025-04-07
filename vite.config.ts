@@ -10,7 +10,7 @@ export default defineConfig({
       registerType: "autoUpdate",
       includeAssets: ["favicon.ico", "apple-touch-icon.png"],
       workbox: {
-        maximumFileSizeToCacheInBytes: 17000000,
+        maximumFileSizeToCacheInBytes: 18000000,
       },
       manifest: {
         name: "Organizrr",
