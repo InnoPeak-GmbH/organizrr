@@ -2,15 +2,12 @@ import {
   ActionIcon,
   AppShell,
   Autocomplete,
-  Box,
   Burger,
   Button,
   Group,
-  Indicator,
   Loader,
   Pagination,
   Paper,
-  Progress,
   ScrollArea,
   Select,
   Stack,
@@ -20,7 +17,6 @@ import {
   Tooltip,
 } from "@mantine/core";
 import { Document, Page } from "react-pdf";
-import { Form, isNotEmpty, useForm } from "@mantine/form";
 import {
   IconDownload,
   IconEye,
@@ -29,7 +25,6 @@ import {
   IconLayoutSidebarLeftCollapse,
   IconLayoutSidebarLeftExpand,
   IconRestore,
-  IconRobotFace,
   IconTrash,
 } from "@tabler/icons-react";
 import {
@@ -38,6 +33,7 @@ import {
   getFileDataUrl,
   systemMessage,
 } from "./utils";
+import { isNotEmpty, useForm } from "@mantine/form";
 import { useCallback, useMemo, useState } from "react";
 
 import { ChatCompletionMessageParam } from "@mlc-ai/web-llm";
@@ -281,7 +277,7 @@ function Organizrr() {
               hiddenFrom="sm"
               size="sm"
             />
-            <Stack>
+            <Stack gap="xs">
               <Title c="white" order={1}>
                 Organizrr
               </Title>
@@ -418,8 +414,6 @@ function Organizrr() {
                         (d, idx) => (
                           <Stack
                             key={`${d.id}-${idx}`}
-                            h={500}
-                            mah={500}
                             w={300}
                             style={{ cursor: "pointer" }}
                             onClick={() => {
@@ -453,20 +447,18 @@ function Organizrr() {
                             {form.values.documents
                               .find((_d) => _d.id === d.id)
                               ?.file.name.endsWith(".pdf") && (
-                              <Box style={{ flexGrow: 1, minHeight: 0 }}>
-                                <ScrollArea h="100%">
-                                  <Document
-                                    file={
-                                      form.values.documents.find(
-                                        (_d) => _d.id === d.id
-                                      )?.file
-                                    }
-                                    className={classNames.pdfPreview}
-                                  >
-                                    <Page pageNumber={1} scale={0.5} />
-                                  </Document>
-                                </ScrollArea>
-                              </Box>
+                              <ScrollArea h={400} w="100%">
+                                <Document
+                                  file={
+                                    form.values.documents.find(
+                                      (_d) => _d.id === d.id
+                                    )?.file
+                                  }
+                                  className={classNames.pdfPreview}
+                                >
+                                  <Page pageNumber={1} scale={0.5} />
+                                </Document>
+                              </ScrollArea>
                             )}
                             <TextInput
                               label="Selected pages"
@@ -518,24 +510,29 @@ function Organizrr() {
         </AppShell.Main>
 
         <AppShell.Aside p="md" bg="var(--mantine-primary-color-1)">
-          {activeDocument && activeDocument.file.name.endsWith(".pdf") && (
-            <Stack align="center">
-              <Text>{activeDocument.file.name}</Text>
-              <ScrollArea w="100%">
-                <Document
-                  file={activeDocument.file}
-                  onLoadSuccess={onDocumentLoadSuccess}
-                >
-                  <Page pageNumber={pageNumber} scale={0.8} />
-                </Document>
-              </ScrollArea>
-              <Pagination
-                value={pageNumber}
-                onChange={setPageNumber}
-                total={numPages ?? 0}
-              />
-            </Stack>
-          )}
+          <Stack align="center">
+            <Group style={{ alignSelf: "start" }}>
+              <IconEye /> <Title order={3}>Vorschau</Title>
+            </Group>
+            {activeDocument && activeDocument.file.name.endsWith(".pdf") && (
+              <>
+                <Text>{activeDocument.file.name}</Text>
+                <ScrollArea w="100%">
+                  <Document
+                    file={activeDocument.file}
+                    onLoadSuccess={onDocumentLoadSuccess}
+                  >
+                    <Page pageNumber={pageNumber} scale={0.8} />
+                  </Document>
+                </ScrollArea>
+                <Pagination
+                  value={pageNumber}
+                  onChange={setPageNumber}
+                  total={numPages ?? 0}
+                />
+              </>
+            )}
+          </Stack>
         </AppShell.Aside>
 
         <AppShell.Footer p="md">
