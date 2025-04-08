@@ -521,12 +521,10 @@ function Organizrr() {
 
         <AppShell.Aside p="md" bg="var(--mantine-primary-color-0)">
           <AppShell.Section>
-            <Group style={{ alignSelf: "start" }}>
-              <IconEye /> <Title order={3}>Preview</Title>
-            </Group>
-          </AppShell.Section>
-          <AppShell.Section grow my="md" component={ScrollArea}>
-            <Stack align="center">
+            <Stack>
+              <Group style={{ alignSelf: "start" }}>
+                <IconEye /> <Title order={3}>Preview</Title>
+              </Group>
               <Select
                 label="Select file"
                 data={form.values.documents.map(({ id, file }) => ({
@@ -536,6 +534,10 @@ function Organizrr() {
                 value={activeDocumentId}
                 onChange={setActiveDocumentId}
               />
+            </Stack>
+          </AppShell.Section>
+          <AppShell.Section grow my="md" component={ScrollArea}>
+            <Stack align="center">
               {activeDocument &&
                 activeDocument.file.name.toLowerCase().endsWith(".pdf") && (
                   <>
@@ -547,14 +549,20 @@ function Organizrr() {
                         <Page pageNumber={pageNumber} scale={0.8} />
                       </Document>
                     </ScrollArea>
-                    <Pagination
-                      value={pageNumber}
-                      onChange={setPageNumber}
-                      total={numPages ?? 0}
-                    />
                   </>
                 )}
             </Stack>
+          </AppShell.Section>
+          <AppShell.Section>
+            {activeDocument && (
+              <Stack align="center">
+                <Pagination
+                  value={pageNumber}
+                  onChange={setPageNumber}
+                  total={numPages ?? 0}
+                />
+              </Stack>
+            )}
           </AppShell.Section>
         </AppShell.Aside>
 
