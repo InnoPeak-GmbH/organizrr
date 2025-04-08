@@ -306,7 +306,7 @@ function Organizrr() {
           </Group>
         </AppShell.Header>
 
-        <AppShell.Navbar p="md" bg="var(--mantine-primary-color-1)">
+        <AppShell.Navbar p="md" bg="var(--mantine-primary-color-0)">
           <AppShell.Section>
             <Group>
               <IconFiles />
@@ -396,7 +396,7 @@ function Organizrr() {
               />
             </Group>
             {activeFile !== null && (
-              <Paper p="md" bg="var(--mantine-primary-color-1)">
+              <Paper p="md" bg="var(--mantine-primary-color-0)">
                 <Stack>
                   <Autocomplete
                     label="Category"
@@ -482,7 +482,8 @@ function Organizrr() {
                             doc.id ===
                             form.values.files[activeFile]?.documents[0].id
                         )
-                        ?.file.name.endsWith(".pdf") && (
+                        ?.file.name.toLowerCase()
+                        .endsWith(".pdf") && (
                         <Stack
                           w={300}
                           key={form.values.files[activeFile]?.documents.length}
@@ -495,7 +496,10 @@ function Organizrr() {
                             }))}
                             onChange={handleDocumentSelect}
                           />
-                          <Dropzone onDrop={handleDocumentDrop} />
+                          <Dropzone
+                            onDrop={handleDocumentDrop}
+                            accept={["application/pdf"]}
+                          />
                         </Stack>
                       )}
                     </Group>
@@ -511,7 +515,7 @@ function Organizrr() {
           </Stack>
         </AppShell.Main>
 
-        <AppShell.Aside p="md" bg="var(--mantine-primary-color-1)">
+        <AppShell.Aside p="md" bg="var(--mantine-primary-color-0)">
           <Stack align="center">
             <Group style={{ alignSelf: "start" }}>
               <IconEye /> <Title order={3}>Vorschau</Title>
