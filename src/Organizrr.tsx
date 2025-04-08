@@ -6,6 +6,7 @@ import {
   Button,
   Group,
   Loader,
+  MantineSize,
   Pagination,
   Paper,
   ScrollArea,
@@ -60,6 +61,7 @@ function Organizrr() {
   const [desktopOpened, { close: closeDesktop, open: openDesktop }] =
     useDisclosure(true);
 
+  const previewBreakpoint: MantineSize = "xl";
   const [previewMobileOpened, { toggle: togglePreviewMobile }] =
     useDisclosure();
   const [previewOpened, { toggle: togglePreview, open: openPreview }] =
@@ -263,7 +265,7 @@ function Organizrr() {
       }}
       aside={{
         width: 600,
-        breakpoint: "sm",
+        breakpoint: previewBreakpoint,
         collapsed: { mobile: !previewMobileOpened, desktop: !previewOpened },
       }}
       padding="md"
@@ -289,14 +291,14 @@ function Organizrr() {
               <ActionIcon
                 variant="subtle"
                 onClick={togglePreview}
-                visibleFrom="sm"
+                visibleFrom={previewBreakpoint}
               >
                 {previewOpened ? <IconEyeOff /> : <IconEye />}
               </ActionIcon>
               <ActionIcon
                 variant="subtle"
                 onClick={togglePreviewMobile}
-                hiddenFrom="sm"
+                hiddenFrom={previewBreakpoint}
               >
                 {previewMobileOpened ? <IconEyeOff /> : <IconEye />}
               </ActionIcon>
