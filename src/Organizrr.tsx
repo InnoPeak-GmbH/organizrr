@@ -448,7 +448,8 @@ function Organizrr() {
                             </Group>
                             {form.values.documents
                               .find((_d) => _d.id === d.id)
-                              ?.file.name.endsWith(".pdf") && (
+                              ?.file.name.toLowerCase()
+                              .endsWith(".pdf") && (
                               <ScrollArea h={400} w="100%">
                                 <Document
                                   file={
@@ -518,26 +519,27 @@ function Organizrr() {
         <AppShell.Aside p="md" bg="var(--mantine-primary-color-0)">
           <Stack align="center">
             <Group style={{ alignSelf: "start" }}>
-              <IconEye /> <Title order={3}>Vorschau</Title>
+              <IconEye /> <Title order={3}>Preview</Title>
             </Group>
-            {activeDocument && activeDocument.file.name.endsWith(".pdf") && (
-              <>
-                <Text>{activeDocument.file.name}</Text>
-                <ScrollArea w="100%">
-                  <Document
-                    file={activeDocument.file}
-                    onLoadSuccess={onDocumentLoadSuccess}
-                  >
-                    <Page pageNumber={pageNumber} scale={0.8} />
-                  </Document>
-                </ScrollArea>
-                <Pagination
-                  value={pageNumber}
-                  onChange={setPageNumber}
-                  total={numPages ?? 0}
-                />
-              </>
-            )}
+            {activeDocument &&
+              activeDocument.file.name.toLowerCase().endsWith(".pdf") && (
+                <>
+                  <Text>{activeDocument.file.name}</Text>
+                  <ScrollArea w="100%">
+                    <Document
+                      file={activeDocument.file}
+                      onLoadSuccess={onDocumentLoadSuccess}
+                    >
+                      <Page pageNumber={pageNumber} scale={0.8} />
+                    </Document>
+                  </ScrollArea>
+                  <Pagination
+                    value={pageNumber}
+                    onChange={setPageNumber}
+                    total={numPages ?? 0}
+                  />
+                </>
+              )}
           </Stack>
         </AppShell.Aside>
 
