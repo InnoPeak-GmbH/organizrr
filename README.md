@@ -30,8 +30,6 @@ cd organizrr
 ### 2. Install JS Dependencies
 
 ```bash
-pnpm install
-# or
 npm install
 ```
 
