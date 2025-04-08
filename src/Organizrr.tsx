@@ -520,38 +520,42 @@ function Organizrr() {
         </AppShell.Main>
 
         <AppShell.Aside p="md" bg="var(--mantine-primary-color-0)">
-          <Stack align="center">
+          <AppShell.Section>
             <Group style={{ alignSelf: "start" }}>
               <IconEye /> <Title order={3}>Preview</Title>
             </Group>
-            <Select
-              label="Select file"
-              data={form.values.documents.map(({ id, file }) => ({
-                value: id,
-                label: file.name,
-              }))}
-              value={activeDocumentId}
-              onChange={setActiveDocumentId}
-            />
-            {activeDocument &&
-              activeDocument.file.name.toLowerCase().endsWith(".pdf") && (
-                <>
-                  <ScrollArea maw="100%">
-                    <Document
-                      file={activeDocument.file}
-                      onLoadSuccess={onDocumentLoadSuccess}
-                    >
-                      <Page pageNumber={pageNumber} scale={0.8} />
-                    </Document>
-                  </ScrollArea>
-                  <Pagination
-                    value={pageNumber}
-                    onChange={setPageNumber}
-                    total={numPages ?? 0}
-                  />
-                </>
-              )}
-          </Stack>
+          </AppShell.Section>
+          <AppShell.Section grow my="md" component={ScrollArea}>
+            <Stack align="center">
+              <Select
+                label="Select file"
+                data={form.values.documents.map(({ id, file }) => ({
+                  value: id,
+                  label: file.name,
+                }))}
+                value={activeDocumentId}
+                onChange={setActiveDocumentId}
+              />
+              {activeDocument &&
+                activeDocument.file.name.toLowerCase().endsWith(".pdf") && (
+                  <>
+                    <ScrollArea maw="100%">
+                      <Document
+                        file={activeDocument.file}
+                        onLoadSuccess={onDocumentLoadSuccess}
+                      >
+                        <Page pageNumber={pageNumber} scale={0.8} />
+                      </Document>
+                    </ScrollArea>
+                    <Pagination
+                      value={pageNumber}
+                      onChange={setPageNumber}
+                      total={numPages ?? 0}
+                    />
+                  </>
+                )}
+            </Stack>
+          </AppShell.Section>
         </AppShell.Aside>
 
         <AppShell.Footer p="md">
