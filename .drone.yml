@@ -7,9 +7,9 @@ steps:
     settings:
       auto_tag: true
       cache_from:
-        - gitea.dikurium.ch/freund_und_partner/customer-files-organizer-web:latest
+        - gitea.dikurium.ch/innopeak/organizrr:latest
       registry: gitea.dikurium.ch
-      repo: gitea.dikurium.ch/freund_und_partner/customer-files-organizer-web
+      repo: gitea.dikurium.ch/innopeak/organizrr
       username:
         from_secret: git_user
       password:
@@ -33,11 +33,11 @@ steps:
         from_secret: digitalocean_spaces_access_key_id
       AWS_SECRET_ACCESS_KEY:
         from_secret: digitalocean_spaces_secret_key
-      TF_VAR_cluster_issuer_name: letsencrypt
+      TF_VAR_cluster_issuer_name: ip-letsencrypt
       TF_VAR_dikurium_k8s_cluster_name_all: k8s-dik-all
       TF_VAR_do_token:
         from_secret: digitalocean_token
-      TF_VAR_image_repository: freund_und_partner/customer-files-organizer-web
+      TF_VAR_image_repository: innopeak/organizrr
       TF_VAR_image_tag: latest
       TF_VAR_registry: gitea.dikurium.ch
       TF_VAR_registry_password:
@@ -65,11 +65,11 @@ steps:
         from_secret: digitalocean_spaces_access_key_id
       AWS_SECRET_ACCESS_KEY:
         from_secret: digitalocean_spaces_secret_key
-      TF_VAR_cluster_issuer_name: letsencrypt
+      TF_VAR_cluster_issuer_name: ip-letsencrypt
       TF_VAR_dikurium_k8s_cluster_name_all: k8s-dik-all
       TF_VAR_do_token:
         from_secret: digitalocean_token
-      TF_VAR_image_repository: freund_und_partner/customer-files-organizer-web
+      TF_VAR_image_repository: innopeak/organizrr
       TF_VAR_image_tag: latest
       TF_VAR_registry: gitea.dikurium.ch
       TF_VAR_registry_password:

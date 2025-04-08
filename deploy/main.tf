@@ -30,8 +30,8 @@ terraform {
 }
 
 locals {
-  domain    = "dikurium.ch"
-  subdomain = "customer-files-organizer"
+  domain    = "innopeak.ch"
+  subdomain = "organizrr"
   hostname  = "${local.subdomain}.${local.domain}"
   url       = "https://${local.hostname}"
   namespace = "customer-files-organizer"
@@ -160,7 +160,7 @@ resource "kubernetes_ingress_v1" "customer_files_organizer" {
   ]
 }
 
-data "digitalocean_domain" "dikurium" {
+data "digitalocean_domain" "innopeak" {
   name = local.domain
 }
 
@@ -169,7 +169,7 @@ data "digitalocean_loadbalancer" "nginx-ingress-controller" {
 }
 
 resource "digitalocean_record" "customer_files_organizer" {
-  domain = data.digitalocean_domain.dikurium.id
+  domain = data.digitalocean_domain.innopeak.id
   type   = "A"
   name   = local.subdomain
   value  = data.digitalocean_loadbalancer.nginx-ingress-controller.ip
