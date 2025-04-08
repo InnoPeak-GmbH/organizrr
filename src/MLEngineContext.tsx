@@ -54,6 +54,7 @@ const modelList = [
 type MLEngineContext = {
   activeModel: string | null;
   selectedModel: string | null;
+  gpuVendor: string | null;
   loadingModel: {
     name: string;
     progress: number;
@@ -69,6 +70,7 @@ type MLEngineContext = {
 const MLEngineContext = createContext<MLEngineContext>({
   activeModel: null,
   selectedModel: null,
+  gpuVendor: null,
   loadingModel: null,
   engine: { current: null },
   selectModel: () => {},
@@ -81,6 +83,7 @@ export function MLEngineContextProvider({ children }: { children: ReactNode }) {
   const [loadingModel, setLoadingModel] = useState<string | null>(null);
   const [loadingProgress, setLoadingProgress] = useState<number | null>(null);
   const [runningModel, setRunningModel] = useState<string | null>(null);
+  const [gpuVendor, setGpuVendor] = useState<string | null>(null);
 
   const [selectedModel, setSelectedModel] = useLocalStorage<string | null>({
     key: "modelId",
@@ -95,21 +98,20 @@ export function MLEngineContextProvider({ children }: { children: ReactNode }) {
           initProgress
         ) => {
           setLoadingProgress(initProgress.progress);
-
-          if (
-            initProgress.progress === 1 &&
-            initProgress.text.startsWith("Finish loading")
-          ) {
-            setRunningModel(selectedModel);
-            setLoadingModel(null);
-            setLoadingProgress(null);
-          }
         };
 
-        engine.current = await CreateMLCEngine(
-          selectedModel,
-          { initProgressCallback: initProgressCallback } // engineConfig
-        );
+        engine.current = await CreateMLCEngine(selectedModel, {
+          initProgressCallback: initProgressCallback,
+        });
+
+        setRunningModel(selectedModel);
+        setLoadingModel(null);
+        setLoadingProgress(null);
+
+        const gpuVendor = await engine.current?.getGPUVendor();
+        if (gpuVendor) {
+          setGpuVendor(gpuVendor);
+        }
       })();
     }
   }, [
@@ -119,6 +121,7 @@ export function MLEngineContextProvider({ children }: { children: ReactNode }) {
     setRunningModel,
     setLoadingModel,
     setLoadingProgress,
+    setGpuVendor,
   ]);
 
   return (
@@ -131,6 +134,7 @@ export function MLEngineContextProvider({ children }: { children: ReactNode }) {
             : null,
         activeModel: runningModel,
         selectedModel,
+        gpuVendor,
         selectModel: setSelectedModel,
         modelList,
       }}
