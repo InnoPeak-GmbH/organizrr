@@ -19,6 +19,7 @@ trigger:
     - main
   event:
     - push
+    - custom
 ---
 kind: pipeline
 type: kubernetes
@@ -51,6 +52,7 @@ trigger:
     - main
   event:
     - push
+    - custom
 ---
 kind: pipeline
 type: kubernetes
