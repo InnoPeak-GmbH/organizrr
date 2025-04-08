@@ -131,58 +131,62 @@ function Organizrr() {
   const handleFileDrop = (files: FileWithPath[]) => {
     if (files.length < 1) return;
 
-    files.forEach((f) => {
-      const id = Math.random().toString(36).replace("0.", "doc_");
-      const fileId = Math.random().toString(36).replace("0.", "file_");
+    if (engine.current) {
+      files.forEach((f) => {
+        if (!engine.current) return;
 
-      form.insertListItem("documents", { id, file: f });
-      form.insertListItem("files", {
-        id: fileId,
-        documents: [{ id }],
-        suffix: "",
-      });
+        const id = Math.random().toString(36).replace("0.", "doc_");
+        const fileId = Math.random().toString(36).replace("0.", "file_");
 
-      const messages: ChatCompletionMessageParam[] = [
-        systemMessage,
-        { role: "user", content: "The file name is: " + f.name },
-      ];
-
-      setGeneratingFilenames((fns) => [...fns, fileId]);
-
-      engine.current?.chat.completions
-        .create({
-          messages,
-        })
-        .then((reply) => {
-          if (
-            reply &&
-            reply.choices[0].message.content &&
-            !reply?.choices[0].message.content?.includes(
-              "Unable to label file"
-            ) &&
-            !reply?.choices[0].message.content?.includes("I'm sorry")
-          ) {
-            console.log(reply?.choices[0].message.content);
-            form.getValues().files.forEach((f, idx) => {
-              if (f.id === fileId) {
-                form.setFieldValue(
-                  `files.${idx}.suffix`,
-                  reply?.choices[0].message.content?.split("\n")[0]
-                );
-              }
-            });
-          } else {
-            console.warn(reply?.choices[0].message.content);
-          }
-
-          setGeneratingFilenames((fns) => fns.filter((fn) => fn !== fileId));
-        })
-        .catch((e) => {
-          console.error(e);
-
-          setGeneratingFilenames((fns) => fns.filter((fn) => fn !== fileId));
+        form.insertListItem("documents", { id, file: f });
+        form.insertListItem("files", {
+          id: fileId,
+          documents: [{ id }],
+          suffix: "",
         });
-    });
+
+        const messages: ChatCompletionMessageParam[] = [
+          systemMessage,
+          { role: "user", content: "The file name is: " + f.name },
+        ];
+
+        setGeneratingFilenames((fns) => [...fns, fileId]);
+
+        engine.current.chat.completions
+          .create({
+            messages,
+          })
+          .then((reply) => {
+            if (
+              reply &&
+              reply.choices[0].message.content &&
+              !reply?.choices[0].message.content?.includes(
+                "Unable to label file"
+              ) &&
+              !reply?.choices[0].message.content?.includes("I'm sorry")
+            ) {
+              console.log(reply?.choices[0].message.content);
+              form.getValues().files.forEach((f, idx) => {
+                if (f.id === fileId) {
+                  form.setFieldValue(
+                    `files.${idx}.suffix`,
+                    reply?.choices[0].message.content?.split("\n")[0]
+                  );
+                }
+              });
+            } else {
+              console.warn(reply?.choices[0].message.content);
+            }
+
+            setGeneratingFilenames((fns) => fns.filter((fn) => fn !== fileId));
+          })
+          .catch((e) => {
+            console.error(e);
+
+            setGeneratingFilenames((fns) => fns.filter((fn) => fn !== fileId));
+          });
+      });
+    }
 
     setActiveFile(form.getValues().files.length - 1);
     setActiveDocumentId(
