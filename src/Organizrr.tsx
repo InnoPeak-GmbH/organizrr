@@ -2,6 +2,7 @@ import {
   ActionIcon,
   AppShell,
   Autocomplete,
+  Box,
   Burger,
   Button,
   Group,
@@ -131,20 +132,18 @@ function Organizrr() {
   const handleFileDrop = (files: FileWithPath[]) => {
     if (files.length < 1) return;
 
-    if (engine.current) {
-      files.forEach((f) => {
-        if (!engine.current) return;
+    files.forEach((f) => {
+      const id = Math.random().toString(36).replace("0.", "doc_");
+      const fileId = Math.random().toString(36).replace("0.", "file_");
 
-        const id = Math.random().toString(36).replace("0.", "doc_");
-        const fileId = Math.random().toString(36).replace("0.", "file_");
+      form.insertListItem("documents", { id, file: f });
+      form.insertListItem("files", {
+        id: fileId,
+        documents: [{ id }],
+        suffix: "",
+      });
 
-        form.insertListItem("documents", { id, file: f });
-        form.insertListItem("files", {
-          id: fileId,
-          documents: [{ id }],
-          suffix: "",
-        });
-
+      if (engine.current) {
         const messages: ChatCompletionMessageParam[] = [
           systemMessage,
           { role: "user", content: "The file name is: " + f.name },
@@ -185,8 +184,8 @@ function Organizrr() {
 
             setGeneratingFilenames((fns) => fns.filter((fn) => fn !== fileId));
           });
-      });
-    }
+      }
+    });
 
     setActiveFile(form.getValues().files.length - 1);
     setActiveDocumentId(
@@ -461,7 +460,7 @@ function Organizrr() {
                                       (_d) => _d.id === d.id
                                     )?.file
                                   }
-                                  className={classNames.pdfPreview}
+                                  className={classNames.pdfThumbnail}
                                 >
                                   <Page pageNumber={1} scale={0.5} />
                                 </Document>
@@ -525,11 +524,19 @@ function Organizrr() {
             <Group style={{ alignSelf: "start" }}>
               <IconEye /> <Title order={3}>Preview</Title>
             </Group>
+            <Select
+              label="Select file"
+              data={form.values.documents.map(({ id, file }) => ({
+                value: id,
+                label: file.name,
+              }))}
+              value={activeDocumentId}
+              onChange={setActiveDocumentId}
+            />
             {activeDocument &&
               activeDocument.file.name.toLowerCase().endsWith(".pdf") && (
                 <>
-                  <Text>{activeDocument.file.name}</Text>
-                  <ScrollArea w="100%">
+                  <ScrollArea maw="100%">
                     <Document
                       file={activeDocument.file}
                       onLoadSuccess={onDocumentLoadSuccess}
