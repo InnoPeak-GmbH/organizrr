@@ -23,6 +23,7 @@ import {
   IconDownload,
   IconEye,
   IconEyeOff,
+  IconFilePlus,
   IconFiles,
   IconLayoutSidebarLeftCollapse,
   IconLayoutSidebarLeftExpand,
@@ -314,26 +315,52 @@ function Organizrr() {
             <Group>
               <IconFiles />
               <Title order={3}>Files</Title>
+              <ActionIcon
+                variant="subtle"
+                ml="auto"
+                onClick={() => {
+                  const id = Math.random().toString(36).replace("0.", "file_");
+                  form.insertListItem("files", { id, documents: [] });
+                  setActiveFile(form.getValues().files.length - 1);
+                }}
+              >
+                <IconFilePlus />
+              </ActionIcon>
             </Group>
           </AppShell.Section>
           <AppShell.Section grow my="md" component={ScrollArea}>
             <Stack>
               {form.values.files.map((f, idx) => (
                 <Stack key={f.id} gap="xs">
-                  <Button
-                    variant={idx === activeFile ? "" : "subtle"}
-                    onClick={() => {
-                      setActiveFile(idx);
-                      closeMobile();
-                    }}
-                    rightSection={
-                      generatingFilenames.includes(f.id) ? (
-                        <Loader size="xs" type="bars" color="white" />
-                      ) : null
-                    }
-                  >
-                    <Text>{f.suffix || f.id}</Text>
-                  </Button>
+                  <Group>
+                    <Button
+                      variant={idx === activeFile ? "" : "subtle"}
+                      onClick={() => {
+                        setActiveFile(idx);
+                        closeMobile();
+                      }}
+                      rightSection={
+                        generatingFilenames.includes(f.id) ? (
+                          <Loader size="xs" type="bars" color="white" />
+                        ) : null
+                      }
+                      style={{ flex: 1 }}
+                    >
+                      <Text>{f.suffix || f.id}</Text>
+                    </Button>
+                    <ActionIcon
+                      onClick={() => {
+                        if (activeFile === idx) {
+                          setActiveFile(null);
+                        }
+                        form.removeListItem("files", idx);
+                      }}
+                      variant="subtle"
+                      c="red"
+                    >
+                      <IconTrash />
+                    </ActionIcon>
+                  </Group>
                   {activeFile != idx &&
                     form.errors &&
                     Object.entries(form.errors)
@@ -480,14 +507,12 @@ function Organizrr() {
                           </Stack>
                         )
                       )}
-                      {form.values.documents
-                        .find(
-                          (doc) =>
-                            doc.id ===
-                            form.values.files[activeFile]?.documents[0].id
-                        )
-                        ?.file.name.toLowerCase()
-                        .endsWith(".pdf") && (
+                      {form.values.files[activeFile].documents.every((doc) =>
+                        form.values.documents
+                          .find((d) => d.id === doc.id)
+                          ?.file.name.toLowerCase()
+                          .endsWith(".pdf")
+                      ) && (
                         <Stack
                           w={300}
                           key={form.values.files[activeFile]?.documents.length}
@@ -540,16 +565,12 @@ function Organizrr() {
             <Stack align="center">
               {activeDocument &&
                 activeDocument.file.name.toLowerCase().endsWith(".pdf") && (
-                  <>
-                    <ScrollArea maw="100%">
-                      <Document
-                        file={activeDocument.file}
-                        onLoadSuccess={onDocumentLoadSuccess}
-                      >
-                        <Page pageNumber={pageNumber} scale={0.8} />
-                      </Document>
-                    </ScrollArea>
-                  </>
+                  <Document
+                    file={activeDocument.file}
+                    onLoadSuccess={onDocumentLoadSuccess}
+                  >
+                    <Page pageNumber={pageNumber} scale={0.8} />
+                  </Document>
                 )}
             </Stack>
           </AppShell.Section>
