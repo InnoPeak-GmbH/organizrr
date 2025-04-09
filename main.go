@@ -9,6 +9,7 @@ import (
 	"io"
 	"path/filepath"
 	"slices"
+	"strings"
 	"time"
 
 	"syscall/js"
@@ -100,7 +101,7 @@ func createArchive(this js.Value, args []js.Value) any {
 				return nil
 			}
 
-			ext := filepath.Ext(document.Name)
+			ext := strings.ToLower(filepath.Ext(document.Name))
 
 			fileName := fmt.Sprintf("%s_%s%s", filePrefix, file.Suffix, ext)
 			i := 1
