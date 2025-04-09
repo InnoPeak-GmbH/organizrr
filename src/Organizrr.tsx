@@ -98,10 +98,10 @@ function Organizrr() {
                 ?.split(",")
                 .some(
                   (val) =>
-                    !/^\d+$/.test(val.replace(" ", "")) &&
-                    !/^\d+\-\d+$/.test(val.replace(" ", "")) &&
-                    val.replace(" ", "") !== "odd" &&
-                    val.replace(" ", "") !== "even"
+                    !/^\d+$/.test(val.replaceAll(" ", "")) &&
+                    !/^\d+\-\d+$/.test(val.replaceAll(" ", "")) &&
+                    val.replaceAll(" ", "") !== "odd" &&
+                    val.replaceAll(" ", "") !== "even"
                 )
             ) {
               return "Page numbers must be given as a comma separated list";
@@ -227,7 +227,7 @@ function Organizrr() {
           documents: f.documents.map((d) => {
             const selectedPages = d.selectedPages
               ?.split(",")
-              .map((sp) => sp.replace(" ", ""));
+              .map((sp) => sp.replaceAll(" ", ""));
 
             return {
               ...d,
