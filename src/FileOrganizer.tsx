@@ -3,31 +3,25 @@ import {
   Button,
   Flex,
   Group,
-  Indicator,
   Pagination,
-  Progress,
-  Select,
   Stack,
   Text,
   TextInput,
   Title,
-  Tooltip,
 } from "@mantine/core";
 import { Document, Page } from "react-pdf";
 import { Form, isNotEmpty, useForm } from "@mantine/form";
 import {
   createArchiveAndDownload,
   fileCategories,
-  getFileDataUrl,
   systemMessage,
 } from "./utils";
 import { useCallback, useState } from "react";
 
 import { ChatCompletionMessageParam } from "@mlc-ai/web-llm";
-import { CreateArchiveInput } from "./types";
+import type { CreateArchiveInput } from "./global.d";
 import Dropzone from "./Dropzone";
 import { FileWithPath } from "@mantine/dropzone";
-import { IconRobotFace } from "@tabler/icons-react";
 import LLMPicker from "./LLMPicker";
 import { useMLEngine } from "./MLEngineContext";
 
