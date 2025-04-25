@@ -30,4 +30,6 @@ export interface CreateArchiveResult {
   error?: string;
 }
 
-declare function createArchive(payload: CreateArchiveInput): Promise<string>;
+declare global {
+  function createArchive(payload: CreateArchiveInput): Promise<string>;
+}

@@ -1,6 +1,6 @@
 import { IconCheck, IconExclamationMark } from "@tabler/icons-react";
 
-import { CreateArchiveInput } from "./types";
+import { CreateArchiveInput } from "./global.d";
 import { notifications } from "@mantine/notifications";
 import { ChatCompletionMessageParam } from "@mlc-ai/web-llm";
 
