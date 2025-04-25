@@ -21,7 +21,7 @@ export const createArchiveAndDownload = async (
   const payload = await getPayload();
 
   try {
-    const resultArchive = await createArchive(JSON.stringify(payload));
+    const resultArchive = await createArchive(payload);
 
     notifications.update({
       id,

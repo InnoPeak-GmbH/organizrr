@@ -4,7 +4,6 @@ import (
 	"archive/zip"
 	"bytes"
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"io"
 	"path/filepath"
@@ -14,81 +13,149 @@ import (
 
 	"syscall/js"
 
+	promise "github.com/nlepage/go-js-promise"
 	pdfcpu "github.com/pdfcpu/pdfcpu/pkg/api"
 	"github.com/pdfcpu/pdfcpu/pkg/pdfcpu/model"
 )
 
-type Customer struct {
-	FirstName string `json:"firstName"`
-	LastName  string `json:"lastName"`
+type Customer struct{ js.Value }
+
+func (customer Customer) GetFirstName() string {
+	return customer.Get("firstName").String()
+}
+
+func (customer Customer) GetLastName() string {
+	return customer.Get("lastName").String()
 }
 
 type Document struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
-	Blob string `json:"blob"`
+	js.Value
+	bytes []byte
 }
 
-type CustomerFile struct {
-	ID        string             `json:"id"`
-	Documents []CustomerDocument `json:"documents"`
-	Suffix    string             `json:"suffix"`
+func (document Document) GetID() string {
+	return document.Get("id").String()
 }
 
-type CustomerDocument struct {
-	ID            string   `json:"id"`
-	SelectedPages []string `json:"selectedPages"`
+func (document Document) GetName() string {
+	return document.Get("file").Get("name").String()
 }
 
-type CreateArchiveInput struct {
-	Customer  Customer       `json:"customer"`
-	Documents []Document     `json:"documents"`
-	Files     []CustomerFile `json:"files"`
+func (document *Document) GetBytes() ([]byte, error) {
+	if len(document.bytes) > 0 {
+		return document.bytes, nil
+	}
+
+	bytea, err := promise.Await(document.Get("file").Call("arrayBuffer"))
+
+	if err != nil {
+		return nil, err
+	}
+
+	uint8Array := js.Global().Get("Uint8Array").New(bytea)
+
+	document.bytes = make([]byte, uint8Array.Length())
+
+	js.CopyBytesToGo(document.bytes, uint8Array)
+
+	return document.bytes, nil
 }
 
-type CreateArchiveResult struct {
-	ResultArchive *string `json:"resultArchive"`
-	Error         *string `json:"error"`
+type CustomerFile struct{ js.Value }
+
+func (file CustomerFile) GetID() string {
+	return file.Get("id").String()
+}
+
+func (file CustomerFile) GetDocuments() []CustomerDocument {
+	ds := file.Get("documents")
+
+	cds := make([]CustomerDocument, ds.Length())
+
+	for i := range ds.Length() {
+		cds[i] = CustomerDocument{ds.Index(i)}
+	}
+
+	return cds
+}
+
+func (file CustomerFile) GetSuffix() string {
+	return file.Get("suffix").String()
+}
+
+type CustomerDocument struct{ js.Value }
+
+func (document CustomerDocument) GetID() string {
+	return document.Get("id").String()
+}
+
+func (document CustomerDocument) GetSelectedPages() (sps []string) {
+	sp := document.Get("selectedPages")
+
+	for i := range sp.Length() {
+		sps = append(sps, sp.Index(i).String())
+	}
+
+	return
+}
+
+type CreateArchiveInput struct{ js.Value }
+
+func (input CreateArchiveInput) GetCustomer() Customer {
+	return Customer{input.Get("customer")}
+}
+
+func (input CreateArchiveInput) GetDocuments() []Document {
+	ds := input.Get("documents")
+
+	documents := make([]Document, ds.Length())
+
+	for i := range ds.Length() {
+		documents[i] = Document{ds.Index(i), nil}
+	}
+
+	return documents
+}
+
+func (input CreateArchiveInput) GetFiles() []CustomerFile {
+	fs := input.Get("files")
+
+	cfs := make([]CustomerFile, fs.Length())
+
+	for i := range fs.Length() {
+		cfs[i] = CustomerFile{fs.Index(i)}
+	}
+
+	return cfs
 }
 
 func createArchive(this js.Value, args []js.Value) any {
-	var input CreateArchiveInput
+	input := CreateArchiveInput{args[0]}
 
-	err := json.Unmarshal([]byte(args[0].String()), &input)
+	p, res, rej := promise.New()
 
-	handler := js.FuncOf(func(this js.Value, args []js.Value) any {
-		var (
-			resolve = args[0]
-			reject  = args[1]
-		)
-
-		if err != nil {
-			reject.Invoke(err.Error())
-
-			return nil
-		}
-
+	go func() {
 		buf := new(bytes.Buffer)
 
 		w := zip.NewWriter(buf)
 
 		now := time.Now()
 
-		filePrefix := fmt.Sprintf("%s_%s_%s", now.Format("2006-01-02_15-04-05"), input.Customer.LastName, input.Customer.FirstName)
+		filePrefix := fmt.Sprintf("%s_%s_%s", now.Format("2006-01-02_15-04-05"), input.GetCustomer().GetLastName(), input.GetCustomer().GetFirstName())
 
 		var fileNames []string
 
-		for _, file := range input.Files {
-			if len(file.Documents) == 0 {
-				reject.Invoke("At least one document must be provided")
+		for _, file := range input.GetFiles() {
+			if len(file.GetDocuments()) == 0 {
+				rej("At least one document must be provided")
 
-				return nil
+				return
 			}
 
 			var document *Document
 
-			for _, doc := range input.Documents {
-				if doc.ID == file.Documents[0].ID {
+			for _, doc := range input.GetDocuments() {
+				if doc.GetID() == file.GetDocuments()[0].GetID() {
 					document = &doc
 
 					break
@@ -96,18 +163,18 @@ func createArchive(this js.Value, args []js.Value) any {
 			}
 
 			if document == nil {
-				reject.Invoke("Couldn't find doc by ID: " + file.Documents[0].ID)
+				rej("Couldn't find doc by ID: " + file.GetDocuments()[0].GetID())
 
-				return nil
+				return
 			}
 
-			ext := strings.ToLower(filepath.Ext(document.Name))
+			ext := strings.ToLower(filepath.Ext(document.GetName()))
 
-			fileName := fmt.Sprintf("%s_%s%s", filePrefix, file.Suffix, ext)
+			fileName := fmt.Sprintf("%s_%s%s", filePrefix, file.GetSuffix(), ext)
 			i := 1
 
 			for slices.Index(fileNames, fileName) != -1 {
-				fileName = fmt.Sprintf("%s_%s-%d%s", filePrefix, file.Suffix, i, ext)
+				fileName = fmt.Sprintf("%s_%s-%d%s", filePrefix, file.GetSuffix(), i, ext)
 				i++
 			}
 
@@ -116,49 +183,49 @@ func createArchive(this js.Value, args []js.Value) any {
 			f, err := w.Create(fileName)
 
 			if err != nil {
-				reject.Invoke(err.Error())
+				rej("Couldn't create file: " + err.Error())
 
-				return nil
+				return
 			}
 
-			b, err := base64.StdEncoding.DecodeString(document.Blob)
+			b, err := document.GetBytes()
 
 			if err != nil {
-				reject.Invoke(err.Error())
+				rej("Couldn't get bytes:" + err.Error())
 
-				return nil
+				return
 			}
 
 			if ext != ".pdf" {
 				_, err = f.Write(b)
 
 				if err != nil {
-					reject.Invoke(err.Error())
+					rej("Couldn't write file:" + err.Error())
 
-					return nil
+					return
 				}
 
 				continue
 			}
 
-			if len(file.Documents) == 1 {
-				if len(file.Documents[0].SelectedPages) > 0 {
+			if len(file.GetDocuments()) == 1 {
+				if len(file.GetDocuments()[0].GetSelectedPages()) > 0 {
 					rs := bytes.NewReader(b)
 
-					err = pdfcpu.Trim(rs, f, file.Documents[0].SelectedPages, nil)
+					err = pdfcpu.Trim(rs, f, file.GetDocuments()[0].GetSelectedPages(), nil)
 
 					if err != nil {
-						reject.Invoke(err.Error())
+						rej("Couldn't trim PDF: " + err.Error())
 
-						return nil
+						return
 					}
 				} else {
 					_, err = f.Write(b)
 
 					if err != nil {
-						reject.Invoke(err.Error())
+						rej("219 - Couldn't write file:" + err.Error())
 
-						return nil
+						return
 					}
 				}
 
@@ -167,11 +234,11 @@ func createArchive(this js.Value, args []js.Value) any {
 
 			var rsc []io.ReadSeeker
 
-			for i := range file.Documents {
+			for i := range file.GetDocuments() {
 				var document *Document
 
-				for _, doc := range input.Documents {
-					if doc.ID == file.Documents[i].ID {
+				for _, doc := range input.GetDocuments() {
+					if doc.GetID() == file.GetDocuments()[i].GetID() {
 						document = &doc
 
 						break
@@ -179,18 +246,18 @@ func createArchive(this js.Value, args []js.Value) any {
 				}
 
 				if document == nil {
-					reject.Invoke("Couldn't find doc by ID: " + file.Documents[i].ID)
+					rej("Couldn't find doc by ID: " + file.GetDocuments()[i].GetID())
 
-					return nil
+					return
 				}
 
 				if i != 0 {
-					b, err = base64.StdEncoding.DecodeString(document.Blob)
+					b, err = document.GetBytes()
 
 					if err != nil {
-						reject.Invoke(err.Error())
+						rej("251 - Couldn't get bytes:" + err.Error())
 
-						return nil
+						return
 					}
 				}
 
@@ -198,18 +265,18 @@ func createArchive(this js.Value, args []js.Value) any {
 					rs = bytes.NewReader(b)
 				)
 
-				if len(file.Documents[i].SelectedPages) > 0 {
+				if len(file.GetDocuments()[i].GetSelectedPages()) > 0 {
 					var (
 						buf []byte
 						res = bytes.NewBuffer(buf)
 					)
 
-					err = pdfcpu.Trim(rs, res, file.Documents[i].SelectedPages, nil)
+					err = pdfcpu.Trim(rs, res, file.GetDocuments()[i].GetSelectedPages(), nil)
 
 					if err != nil {
-						reject.Invoke(err.Error())
+						rej("270 - Couldn't trim PDF: " + err.Error())
 
-						return nil
+						return
 					}
 
 					rsc = append(rsc, bytes.NewReader(res.Bytes()))
@@ -221,19 +288,16 @@ func createArchive(this js.Value, args []js.Value) any {
 			pdfcpu.MergeRaw(rsc, f, false, nil)
 		}
 
-		if err = w.Close(); err != nil {
-			reject.Invoke(err.Error())
+		if err := w.Close(); err != nil {
+			rej("Couldn't close ZIP:" + err.Error())
 
-			return nil
+			return
 		}
 
-		resolve.Invoke(base64.StdEncoding.EncodeToString(buf.Bytes()))
+		res(base64.StdEncoding.EncodeToString(buf.Bytes()))
+	}()
 
-		return nil
-	})
-
-	promiseConstructor := js.Global().Get("Promise")
-	return promiseConstructor.New(handler)
+	return p
 }
 
 func init() {

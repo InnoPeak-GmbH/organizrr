@@ -68,29 +68,17 @@ function FileOrganizer() {
 
   const handleSubmit = async ({ customer, files }: FormValues) => {
     await createArchiveAndDownload(async () => {
-      const f = await Promise.all(
-        files.map(async (f) => {
-          const dataURL = await getFileDataUrl(f.file);
-
-          return {
-            ...f,
-            name: f.file.name,
-            blob: dataURL,
-          };
-        })
-      );
-
       const payload: CreateArchiveInput = {
         customer,
         documents: [],
         files: [],
       };
 
-      f.forEach(({ blob, name, suffix, selectedPages }) => {
+      files.forEach(({ file, suffix, selectedPages }) => {
         const id = Math.random().toString(36).replace("0.", "doc_");
         const fileId = Math.random().toString(36).replace("0.", "file_");
 
-        payload.documents.push({ id, blob, name });
+        payload.documents.push({ id, file });
         payload.files.push({
           id: fileId,
           suffix,

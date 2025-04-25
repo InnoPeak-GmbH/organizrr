@@ -2,7 +2,6 @@ import {
   ActionIcon,
   AppShell,
   Autocomplete,
-  Box,
   Burger,
   Button,
   Group,
@@ -33,7 +32,6 @@ import {
 import {
   createArchiveAndDownload,
   fileCategories,
-  getFileDataUrl,
   systemMessage,
 } from "./utils";
 import { isNotEmpty, useForm } from "@mantine/form";
@@ -235,13 +233,7 @@ function Organizrr() {
             };
           }),
         })),
-        documents: await Promise.all(
-          documents.map(async (d) => ({
-            ...d,
-            name: d.file.name,
-            blob: await getFileDataUrl(d.file),
-          }))
-        ),
+        documents,
       };
     });
   };

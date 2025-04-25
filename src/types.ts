@@ -5,8 +5,7 @@ export interface Customer {
 
 export interface Document {
   id: string;
-  name: string;
-  blob: string;
+  file: File;
 }
 
 export interface CustomerFile {
